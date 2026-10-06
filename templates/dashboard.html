@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IoT Trusted Computing & Attestation Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .pulse-alert {
+      animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    .hash-code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-slate-900">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 bg-gradient-to-tr from-cyan-600 to-blue-500 rounded-xl shadow-lg shadow-cyan-500/20 text-white">
+          <i class="fa-solid fa-shield-halved text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            IoT Trusted Device System
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">Trusted Computing</span>
+          </h1>
+          <p class="text-xs text-slate-400">Remote Attestation • Integrity Verification • Zero-Trust Gatekeeper</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span class="flex items-center text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-3 py-1.5 rounded-lg shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-ping"></span>
+          Gatekeeper Active
+        </span>
+        <a href="/docs" target="_blank" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i> Swagger API
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-6 py-8 flex-1 w-full space-y-8">
+
+    <!-- KPI Metric Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Registered</p>
+            <h3 id="stat-total" class="text-3xl font-extrabold text-white mt-1">--</h3>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl border border-blue-500/20">
+            <i class="fa-solid fa-microchip"></i>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-3 flex items-center gap-1">
+          <i class="fa-solid fa-database"></i> Hardware-bound identity records
+        </p>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Trusted Devices</p>
+            <h3 id="stat-trusted" class="text-3xl font-extrabold text-emerald-400 mt-1">--</h3>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl border border-emerald-500/20">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-3 flex items-center gap-1 text-emerald-400/80">
+          <i class="fa-solid fa-check"></i> Firmware & keys verified authentic
+        </p>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Untrusted / Quarantined</p>
+            <h3 id="stat-untrusted" class="text-3xl font-extrabold text-rose-400 mt-1">--</h3>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center text-xl border border-rose-500/20">
+            <i class="fa-solid fa-ban"></i>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-3 flex items-center gap-1 text-rose-400/80">
+          <i class="fa-solid fa-shield-virus"></i> Network access strictly blocked
+        </p>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Security Violations</p>
+            <h3 id="stat-violations" class="text-3xl font-extrabold text-amber-400 mt-1">--</h3>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl border border-amber-500/20">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-3 flex items-center gap-1 text-amber-400/80">
+          <i class="fa-solid fa-fingerprint"></i> Tampering or forged requests caught
+        </p>
+      </div>
+    </div>
+
+    <!-- Live Simulation Sandbox Panel -->
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 rounded-2xl p-6 shadow-md">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-flask-vial text-cyan-400"></i> Interactive Attack & Trust Simulator
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Test real-time remote attestation policies by simulating live benign and malicious device behaviors.</p>
+        </div>
+        <div id="sim-status-badge" class="hidden text-xs px-3 py-1.5 rounded-lg border"></div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <!-- Scenario 1 -->
+        <button onclick="runWebSimulation(1)" class="group text-left p-4 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900 transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Scenario 1</span>
+              <i class="fa-solid fa-shield-check text-emerald-400 text-base"></i>
+            </div>
+            <h4 class="text-sm font-semibold text-white group-hover:text-emerald-300">Legitimate Device</h4>
+            <p class="text-xs text-slate-400 mt-1">Authentic firmware & valid hardware key. Obtains TRUSTED status.</p>
+          </div>
+          <span class="mt-4 text-[11px] font-medium text-emerald-400 flex items-center gap-1">Simulate Boot & Attest &rarr;</span>
+        </button>
+
+        <!-- Scenario 2 -->
+        <button onclick="runWebSimulation(2)" class="group text-left p-4 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-rose-500/50 hover:bg-slate-900 transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-rose-400 uppercase tracking-wider">Scenario 2</span>
+              <i class="fa-solid fa-bug text-rose-400 text-base"></i>
+            </div>
+            <h4 class="text-sm font-semibold text-white group-hover:text-rose-300">Tampered Firmware</h4>
+            <p class="text-xs text-slate-400 mt-1">Backdoor injected into binary. SHA-256 mismatch triggers UNTRUSTED.</p>
+          </div>
+          <span class="mt-4 text-[11px] font-medium text-rose-400 flex items-center gap-1">Inject Backdoor &rarr;</span>
+        </button>
+
+        <!-- Scenario 3 -->
+        <button onclick="runWebSimulation(3)" class="group text-left p-4 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 hover:bg-slate-900 transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Scenario 3</span>
+              <i class="fa-solid fa-key text-amber-400 text-base"></i>
+            </div>
+            <h4 class="text-sm font-semibold text-white group-hover:text-amber-300">Rogue Secret Key</h4>
+            <p class="text-xs text-slate-400 mt-1">Attacker tries forged or invalid cryptographic secret. Auth fails.</p>
+          </div>
+          <span class="mt-4 text-[11px] font-medium text-amber-400 flex items-center gap-1">Forge Signature &rarr;</span>
+        </button>
+
+        <!-- Scenario 4 -->
+        <button onclick="runWebSimulation(4)" class="group text-left p-4 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-900 transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-purple-400 uppercase tracking-wider">Scenario 4</span>
+              <i class="fa-solid fa-rotate-left text-purple-400 text-base"></i>
+            </div>
+            <h4 class="text-sm font-semibold text-white group-hover:text-purple-300">Replay Attack</h4>
+            <p class="text-xs text-slate-400 mt-1">Sniffed challenge nonce re-submitted. Anti-replay engine blocks it.</p>
+          </div>
+          <span class="mt-4 text-[11px] font-medium text-purple-400 flex items-center gap-1">Replay Quote &rarr;</span>
+        </button>
+      </div>
+
+      <!-- Live Terminal Output for Sandbox -->
+      <div id="sim-terminal-box" class="mt-4 p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto hidden max-h-48 overflow-y-auto">
+        <div id="sim-terminal-content"></div>
+      </div>
+    </div>
+
+    <!-- Layout Columns: Devices List & Audit Logs -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+      <!-- Left Column: Registered Devices (7 cols) -->
+      <div class="lg:col-span-7 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-network-wired text-cyan-400"></i> Managed IoT Nodes
+            </h2>
+            <p class="text-xs text-slate-400">Inventory of edge devices with hardware identities & golden measurements</p>
+          </div>
+          <button onclick="refreshData()" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs border border-slate-700 transition" title="Refresh">
+            <i class="fa-solid fa-arrows-rotate"></i>
+          </button>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-950/70 text-slate-400 border-b border-slate-800 uppercase text-[10px] tracking-wider">
+                  <th class="py-3 px-4">Device ID / Name</th>
+                  <th class="py-3 px-4">Golden Hash (Baseline)</th>
+                  <th class="py-3 px-4">Trust Status</th>
+                  <th class="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="devices-table-body" class="divide-y divide-slate-800/80">
+                <tr>
+                  <td colspan="4" class="py-8 text-center text-slate-500">
+                    <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Loading devices...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Live Attestation Audit Logs (5 cols) -->
+      <div class="lg:col-span-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-clipboard-list text-cyan-400"></i> Attestation Audit Log
+            </h2>
+            <p class="text-xs text-slate-400">Tamper-evident verification verdicts & forensics</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-sm max-h-[540px] overflow-y-auto space-y-3" id="logs-container">
+          <p class="text-center py-8 text-slate-500 text-xs">
+            <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Fetching verification records...
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/80 bg-slate-950 py-4 px-6 text-center text-xs text-slate-500">
+    IoT Trusted Device System &copy; 2026 • Built with Trusted Computing principles (RoT, Remote Attestation & Zero Trust).
+  </footer>
+
+  <!-- Script logic -->
+  <script>
+    let devicesCache = [];
+
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+        document.getElementById('stat-total').innerText = data.total_devices;
+        document.getElementById('stat-trusted').innerText = data.trusted_devices;
+        document.getElementById('stat-untrusted').innerText = data.untrusted_devices;
+        document.getElementById('stat-violations').innerText = data.total_violations;
+      } catch (err) {
+        console.error('Error fetching stats:', err);
+      }
+    }
+
+    async function fetchDevices() {
+      try {
+        const res = await fetch('/api/devices');
+        const data = await res.json();
+        devicesCache = data.devices;
+        const tbody = document.getElementById('devices-table-body');
+        
+        if (!devicesCache || devicesCache.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-500">No devices registered.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = devicesCache.map(dev => {
+          const isTrusted = dev.trust_status === 'TRUSTED';
+          const badgeClass = isTrusted 
+            ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800' 
+            : 'bg-rose-950/80 text-rose-400 border-rose-800';
+          const badgeIcon = isTrusted ? 'fa-circle-check' : 'fa-circle-xmark';
+          const truncatedHash = dev.golden_hash ? `${dev.golden_hash.substring(0, 10)}...${dev.golden_hash.substring(dev.golden_hash.length - 8)}` : 'None';
+
+          return `
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="py-3.5 px-4">
+                <div class="font-semibold text-slate-100">${dev.device_id}</div>
+                <div class="text-[11px] text-slate-400">${dev.device_name}</div>
+              </td>
+              <td class="py-3.5 px-4 font-mono text-[11px] text-slate-300">
+                <span title="${dev.golden_hash}" class="cursor-help bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                  ${truncatedHash}
+                </span>
+              </td>
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${badgeClass}">
+                  <i class="fa-solid ${badgeIcon}"></i> ${dev.trust_status}
+                </span>
+              </td>
+              <td class="py-3.5 px-4 text-right space-x-2">
+                ${isTrusted ? `
+                  <button onclick="revokeTrust('${dev.device_id}')" class="px-2.5 py-1 bg-rose-950/50 hover:bg-rose-900/60 text-rose-300 border border-rose-800/80 rounded text-[11px] transition">
+                    <i class="fa-solid fa-lock"></i> Revoke
+                  </button>
+                ` : `
+                  <button onclick="quickAttest('${dev.device_id}')" class="px-2.5 py-1 bg-cyan-950/50 hover:bg-cyan-900/60 text-cyan-300 border border-cyan-800/80 rounded text-[11px] transition">
+                    <i class="fa-solid fa-shield"></i> Attest
+                  </button>
+                `}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Error fetching devices:', err);
+      }
+    }
+
+    async function fetchLogs() {
+      try {
+        const res = await fetch('/api/logs?limit=15');
+        const data = await res.json();
+        const container = document.getElementById('logs-container');
+        
+        if (!data.logs || data.logs.length === 0) {
+          container.innerHTML = `<p class="text-center py-8 text-slate-500 text-xs">No verification events logged yet.</p>`;
+          return;
+        }
+
+        container.innerHTML = data.logs.map(log => {
+          const isAllowed = log.is_allowed === 1;
+          const statusColor = isAllowed ? 'border-emerald-500/40 bg-emerald-950/20' : 'border-rose-500/40 bg-rose-950/20';
+          const icon = isAllowed ? 'fa-check text-emerald-400' : 'fa-xmark text-rose-400';
+          const timeStr = new Date(log.timestamp * 1000).toLocaleTimeString();
+
+          return `
+            <div class="border rounded-xl p-3 text-xs ${statusColor} transition hover:bg-slate-800/30">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-bold text-slate-200 flex items-center gap-1.5">
+                  <i class="fa-solid ${icon}"></i> ${log.device_id}
+                </span>
+                <span class="text-[10px] text-slate-400">${timeStr}</span>
+              </div>
+              <p class="text-[11px] text-slate-300 leading-snug">${log.reason}</p>
+              <div class="mt-2 text-[10px] text-slate-400 space-y-0.5 font-mono">
+                ${log.reported_hash ? `<div><span class="text-slate-500">Reported:</span> ${log.reported_hash.substring(0, 24)}...</div>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Error fetching logs:', err);
+      }
+    }
+
+    async function revokeTrust(deviceId) {
+      try {
+        await fetch(`/api/devices/${deviceId}/revoke`, { method: 'POST' });
+        refreshData();
+      } catch (err) {
+        alert('Failed to revoke device');
+      }
+    }
+
+    async function quickAttest(deviceId) {
+      logTerminal(`Requesting attestation for ${deviceId}...`);
+      // Trigger a standard attestation using the API
+      const dev = devicesCache.find(d => d.device_id === deviceId);
+      if (!dev) return;
+
+      const chRes = await fetch('/api/challenge', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ device_id: deviceId })
+      });
+      const challenge = await chRes.json();
+      
+      // Let's call simulation
+      runWebSimulation(1, deviceId);
+    }
+
+    async function runWebSimulation(scenarioId) {
+      const termBox = document.getElementById('sim-terminal-box');
+      const termContent = document.getElementById('sim-terminal-content');
+      termBox.classList.remove('hidden');
+      termContent.innerHTML = '';
+
+      function logT(msg, color = 'text-slate-300') {
+        const line = document.createElement('div');
+        line.className = `${color} py-0.5`;
+        line.innerHTML = msg;
+        termContent.appendChild(line);
+        termBox.scrollTop = termBox.scrollHeight;
+      }
+
+      logT(`🚀 <strong>[Sandbox] Initiating Scenario ${scenarioId}...</strong>`, 'text-cyan-400');
+      
+      try {
+        const res = await fetch(`/api/simulate/run/${scenarioId}`, { method: 'POST' });
+        const data = await res.json();
+        
+        if (data.logs && Array.isArray(data.logs)) {
+          data.logs.forEach(msg => {
+            let color = 'text-slate-300';
+            if (msg.includes('TRUSTED') || msg.includes('GRANTED') || msg.includes('SUCCESS') || msg.includes('Nominal')) {
+              color = 'text-emerald-400 font-semibold';
+            } else if (msg.includes('UNTRUSTED') || msg.includes('DENIED') || msg.includes('BLOCKED') || msg.includes('❌') || msg.includes('⛔')) {
+              color = 'text-rose-400 font-semibold';
+            } else if (msg.includes('⚠️') || msg.includes('Replay')) {
+              color = 'text-amber-400';
+            } else if (msg.includes('🔍') || msg.includes('🌐')) {
+              color = 'text-cyan-300';
+            }
+            logT(msg, color);
+          });
+        }
+      } catch (err) {
+        logT(`❌ Simulation execution failed: ${err.message}`, 'text-rose-500 font-bold');
+      }
+
+      refreshData();
+    }
+
+    function refreshData() {
+      fetchStats();
+      fetchDevices();
+      fetchLogs();
+    }
+
+    // Initial load and recurring interval
+    refreshData();
+    setInterval(refreshData, 5000);
+  </script>
+</body>
+</html>
